@@ -43,7 +43,7 @@ bot.dialog('/', [
         builder.Prompts.choice(session, "Hey <NAME>, ready for a dinner where you'll not only fall in love with food?", ["Yes", "Tell me more"]);
     },
     function (session, results) {
-        if (results.response.entity == 'YES'){
+        if (results.response.entity == 'Yes'){
             session.beginDialog('/register');
         } else {
             session.send("TODO");
