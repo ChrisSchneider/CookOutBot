@@ -1,7 +1,7 @@
 "use strict";
 var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
-var http = require('http');
+var request = require('request');
 
 var useEmulator = (process.env.NODE_ENV == 'development');
 
@@ -62,7 +62,7 @@ bot.dialog('/register', [
     },
     function (session, results) {
         session.userData.ageGroup = ageGroups[results.response.entity].id;
-        builder.Prompts.choice(session, "Are you a vegetarian or vegan?", ["No", "vegetarian", "vegan"]);
+        builder.Prompts.choice(session, "Are you a vegetarian or vegan?", ["Neither", "vegetarian", "vegan"]);
     },
     function (session, results) {
         session.userData.foodType = results.response.entity;
@@ -95,31 +95,25 @@ bot.dialog('/register', [
     },
     function (session, results) {
         session.userData.email = results.response;
-        postRegistration({
-            Firstname: 'Chris',
-            Lastname: 'Schneider',
-            sex: 'm',
-            email: session.userData.email,
-            ageGroup: session.userData.ageGroup,
-            zip: session.userData.zip,
-            host: session.dialogData.host,
-            when: session.dialogData.date.getTime(),
-            requiredTags: [],
-            foodPreferences: session.userData.foodPreferences,
+        request.post('https://www.schlafhacking.de/cookout/reg.php', {
+            json: {
+                Firstname: 'Chris',
+                Lastname: 'Schneider',
+                sex: 'm',
+                email: session.userData.email,
+                ageGroup: session.userData.ageGroup,
+                zip: session.userData.zip,
+                host: session.dialogData.host,
+                when: session.dialogData.date.getTime(),
+                requiredTags: [],
+                foodPreferences: session.userData.foodPreferences,
+            }
         });
         session.send("Perfect! We'll mail you your invitation on Tuesday, December 6th");
         session.send("Perfect! We'll mail you your invitation on Tuesday, December 13th");
         session.send("…and don't forget to fall in love ;-)");
     },
 ]);
-
-function postRegistration(obj){
-  var request = http.request(post_options, function(response) {
-      console.log('Got response', response);
-  });
-  request.write(JSON.stringify(obj));
-  request.end();
-}
 
 if (useEmulator) {
     var restify = require('restify');
