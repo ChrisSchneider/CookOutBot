@@ -33,10 +33,32 @@ var dates = {
     'Sat 10.12.': {
         date: new Date(2016, 11, 10)
     },
-    'Sat 10.12.': {
+    'Sat 17.12.': {
         date: new Date(2016, 11, 17)
     }
 };
+
+var hostOptions = {
+    'none': {
+        value: null,
+    },
+    '4': {
+        value: 4
+    },
+    '5': {
+        value: 5
+    },
+    '6': {
+        value: 6
+    }
+};
+
+var foodTypes = {
+    'neither': [],
+    'vegetarian': ['vegetarian'],
+    'vegan': ['vegan']
+};
+
 
 bot.dialog('/', [
     function (session) {
@@ -62,28 +84,18 @@ bot.dialog('/register', [
     },
     function (session, results) {
         session.userData.ageGroup = ageGroups[results.response.entity].id;
-        builder.Prompts.choice(session, "Are you a vegetarian or vegan?", ["Neither", "vegetarian", "vegan"]);
+        builder.Prompts.choice(session, "Are you a vegetarian or vegan?", foodTypes);
     },
     function (session, results) {
-        session.userData.foodType = results.response.entity;
+        session.userData.requiredTags = foodTypes[results.response.entity];
         builder.Prompts.text(session, "Is there anything else we should know about your food preferences?");
     },
     function (session, results) {
         session.userData.foodPreferences = results.response;
-        builder.Prompts.choice(session, "How many could you host, including you?", ["None", "4", "5", "6"]);
+        builder.Prompts.choice(session, "How many could you host, including you?", hostOptions);
     },
     function (session, results, next) {
-        if (results.response.entity == '4'){
-            session.dialogData.host = 4;
-        } else if (results.response.entity == '5'){
-            session.dialogData.host = 5;
-        } else if (results.response.entity == '6'){
-            session.dialogData.host = 6;
-        } else {
-            session.dialogData.host = 0;
-            next();
-            return;
-        }
+        session.dialogData.host = hostOptions[results.response.entity].id;;
         builder.Prompts.text(session, "To what address should people come?");
     },
     function (session, results) {
@@ -105,7 +117,7 @@ bot.dialog('/register', [
                 zip: session.userData.zip,
                 host: session.dialogData.host,
                 when: session.dialogData.date.getTime(),
-                requiredTags: [],
+                requiredTags: session.dialogData.requiredTags,
                 foodPreferences: session.userData.foodPreferences,
             }
         });
